@@ -40,6 +40,12 @@ services:
       KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    healthcheck:
+      test: ["CMD", "nc", "-vz", "localhost", "9093"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
 
   broker-2:
     image: confluentinc/cp-enterprise-kafka:6.0.10
@@ -94,4 +100,43 @@ services:
       - KAFKA_BROKERCONNECT=broker1:9093,broker2:9095,broker3:9097
     depends_on:
       - broker-1
-      
+
+  rating_producer:
+    container_name: ratingproducer1
+    build:
+      context: .
+      dockerfile: ./images/rating_producer/Dockerfile
+    hostname: ratingproducer
+    depends_on:
+      broker-1:
+        condition: service_healthy
+
+  mean_rating_producer:
+    container_name: meanratingproducer1
+    build:
+      context: .
+      dockerfile: ./images/mean_rating_producer/Dockerfile
+    hostname: meanratingproducer
+    depends_on:
+      broker-1:
+        condition: service_healthy
+
+  movie_data_producer:
+    container_name: moviedataproducer1
+    build:
+      context: .
+      dockerfile: ./images/movie_data_producer/Dockerfile
+    hostname: moviedataproducer
+    depends_on:
+      broker-1:
+        condition: service_healthy
+
+  movie_data_sink:
+    container_name: moviedatasink1
+    build:
+      context: .
+      dockerfile: ./images/movie_data_sink/Dockerfile
+    hostname: moviedatasink
+    depends_on:
+      broker-1:
+        condition: service_healthy
