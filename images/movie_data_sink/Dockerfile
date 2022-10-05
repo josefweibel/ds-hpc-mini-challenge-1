@@ -1,5 +1,5 @@
 FROM python:3
-RUN pip install kafka-python protobuf pandas
+RUN pip install kafka-python protobuf pandas pika
 COPY src/setup.py /setup.py
 COPY src/movie_data_sink.py /movie_data_sink.py
 COPY src/message_service.py /message_service.py

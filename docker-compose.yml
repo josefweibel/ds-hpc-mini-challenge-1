@@ -91,6 +91,13 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
 
+  rabbitmq:
+    image: rabbitmq
+    hostname: rabbitmq1
+    container_name: rabbitmq1
+    ports:
+      - "5672:5672"
+
   kafdrop:
     image: obsidiandynamics/kafdrop:latest
     container_name: kafdrop1
@@ -120,6 +127,8 @@ services:
     depends_on:
       broker-1:
         condition: service_healthy
+      rabbitmq:
+        condition: service_started
 
   movie_data_producer:
     container_name: moviedataproducer1
@@ -130,6 +139,8 @@ services:
     depends_on:
       broker-1:
         condition: service_healthy
+      rabbitmq:
+        condition: service_started
 
   movie_data_sink:
     container_name: moviedatasink1
@@ -140,3 +151,5 @@ services:
     depends_on:
       broker-1:
         condition: service_healthy
+      rabbitmq:
+        condition: service_started
