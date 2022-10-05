@@ -1,6 +1,5 @@
 version: '3'
 
-      
 services:
   jupyter:
     container_name: jupyter1
@@ -9,7 +8,7 @@ services:
       - ./notebooks:/home/jovyan/
     ports:
       - "8888:8888"
-        
+
   zookeeper:
     image: confluentinc/cp-zookeeper
     hostname: zookeeper
@@ -29,7 +28,7 @@ services:
     ports:
       - "9092:9092"
     expose:
-    - "9093"
+      - "9093"
     environment:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker1:9093,OUTSIDE://localhost:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,OUTSIDE:PLAINTEXT
@@ -41,7 +40,7 @@ services:
       KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      
+
   broker-2:
     image: confluentinc/cp-enterprise-kafka:6.0.10
     hostname: broker2
@@ -51,7 +50,7 @@ services:
     ports:
       - "9094:9094"
     expose:
-    - "9095"
+      - "9095"
     environment:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker2:9095,OUTSIDE://localhost:9094
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,OUTSIDE:PLAINTEXT
@@ -63,7 +62,7 @@ services:
       KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      
+
   broker-3:
     image: confluentinc/cp-enterprise-kafka:6.0.10
     hostname: broker3
@@ -73,7 +72,7 @@ services:
     ports:
       - "9096:9096"
     expose:
-    - "9097"
+      - "9097"
     environment:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker3:9097,OUTSIDE://localhost:9096
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,OUTSIDE:PLAINTEXT
@@ -85,7 +84,7 @@ services:
       KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      
+
   kafdrop:
     image: obsidiandynamics/kafdrop:latest
     container_name: kafdrop1
@@ -93,6 +92,6 @@ services:
       - 9000:9000
     environment:
       - KAFKA_BROKERCONNECT=broker1:9093,broker2:9095,broker3:9097
-    depends_on: 
+    depends_on:
       - broker-1
       
