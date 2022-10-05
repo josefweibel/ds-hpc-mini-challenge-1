@@ -14,7 +14,7 @@ try:
 		new_topics=[
 			NewTopic(name='movies', num_partitions=1, replication_factor=3),
 			NewTopic(name='ratings', num_partitions=1, replication_factor=3),
-			NewTopic(name='mean-ratings', num_partitions=1, replication_factor=3)
+			NewTopic(name='mean-ratings', num_partitions=1, replication_factor=3, topic_configs = {'cleanup.policy': 'compact'})
 		],
 		validate_only=False
 	)

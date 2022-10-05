@@ -31,6 +31,6 @@ class MeanRatingProducer(MessageProcessor):
 		msg = MeanRating()
 		msg.value = mean_rating
 		msg.movieId = message.movieId
-		self.producer.publish('mean-ratings', msg)
+		self.producer.publish('mean-ratings', msg, key = str(message.movieId))
 
 MeanRatingProducer(['ratings']).run()
