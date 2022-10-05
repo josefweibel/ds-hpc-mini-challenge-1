@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package movies;
+
+message Rating {
+  float value = 1;
+  int32 movieId = 2;
+  int32 userId = 3;
+}
+
+message MeanRating {
+  float value = 1;
+  int32 movieId = 2;
+}
+
+message Movie {
+  int32 id = 1;
+  string title = 2;
+  repeated string genres = 3;
+}
