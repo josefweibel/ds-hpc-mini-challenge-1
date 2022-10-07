@@ -1,5 +1,11 @@
 # Mini-Challenge 1 - High Performance Computing (hpc) HS22
 
+## Instructions
+
+1. Download the MovieLens dataset via the provided link and move directory `data` into the root directory of this repositiory.
+2. Run `docker-compose up` and all required containers will be created and started.
+3. To switch between Kafka and RabbitMQ as messaging system, change the setting in `src/message_service.py`.
+
 ## Containers, Communication Patterns/Frameworks and Performance Analysis
 
 You have a client that continuously accumulates data and wants to process it further. To do this, the client wants to use the [Apache Kafka - Data Streaming Platform](https://kafka.apache.org/) in a first step. In a a second step it will use a different communication pattern. The application runs distributed in different Docker containers. Define what kind of data your client has and what problem they want to solve with it. Describe the initial situation and the problem to be solved in about 200 words. Then implement your methods according to the tasks below.
