@@ -16,7 +16,7 @@ Durch das Starten des Producers im Kafka-Tutorial wird ein neues Topic angelegt 
 
 *Hier wird die Architektur des Systems vorgestellt.*
 
-![](architecture.png)
+![](architecture-1.png)
 
 Das System besteht hauptsächlich aus drei Brokern, drei Producern und zwei Consumern. Für die Kommunikation zwischen den Brokern steht eine Zookeeper-Instanz zur Verfügung und um die Messages auf den Brokern manuell zu untersuchen ist Kafdrop auf einem Container eingerichtet. Um Python-Code auszuführen gibt es zudem einen Container mit installiertem Jupyter.
 
