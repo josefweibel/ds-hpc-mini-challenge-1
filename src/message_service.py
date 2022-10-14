@@ -5,7 +5,7 @@ if system == 'kafka':
 	from kafka import KafkaConsumer, KafkaProducer
 	import uuid
 
-	servers = 'broker1:9093'
+	servers = ['broker1:9093', 'broker2:9095', 'broker3:9097']
 
 	class MessageProducer:
 		def __init__(self, name):
