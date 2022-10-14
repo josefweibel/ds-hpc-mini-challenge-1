@@ -92,7 +92,7 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
 
   rabbitmq:
-    image: rabbitmq
+    image: rabbitmq:3.11
     hostname: rabbitmq1
     container_name: rabbitmq1
     ports:
