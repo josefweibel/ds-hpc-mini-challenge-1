@@ -1,4 +1,5 @@
 import pandas as pd
+import sys
 
 from message_service import MessageProcessor, MessageProducer
 from movies_pb2 import Rating, MeanRating
@@ -33,4 +34,9 @@ class MeanRatingProducer(MessageProcessor):
 		msg.movieId = message.movieId
 		self.producer.publish('mean-ratings', msg, key = str(message.movieId))
 
-MeanRatingProducer(['ratings']).run()
+producer = MeanRatingProducer(['ratings'])
+if __name__ == '__main__':
+	if len(sys.argv) > 1:
+		producer.run(n = int(sys.argv[1]))
+	else:
+		producer.run()

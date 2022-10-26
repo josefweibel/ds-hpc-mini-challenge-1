@@ -18,3 +18,15 @@ message Movie {
   string title = 2;
   repeated string genres = 3;
 }
+
+message ConsumedMessage {
+  string consumer = 1;
+  float timestamp = 2;
+  string hostname = 3;
+}
+
+message PublishedMessage {
+  string publisher = 1;
+  float timestamp = 2;
+  string hostname = 3;
+}

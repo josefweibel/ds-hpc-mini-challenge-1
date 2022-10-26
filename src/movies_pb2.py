@@ -13,7 +13,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0cmovies.proto\x12\x06movies\"8\n\x06Rating\x12\r\n\x05value\x18\x01 \x01(\x02\x12\x0f\n\x07movieId\x18\x02 \x01(\x05\x12\x0e\n\x06userId\x18\x03 \x01(\x05\",\n\nMeanRating\x12\r\n\x05value\x18\x01 \x01(\x02\x12\x0f\n\x07movieId\x18\x02 \x01(\x05\"2\n\x05Movie\x12\n\n\x02id\x18\x01 \x01(\x05\x12\r\n\x05title\x18\x02 \x01(\t\x12\x0e\n\x06genres\x18\x03 \x03(\tb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0cmovies.proto\x12\x06movies\"8\n\x06Rating\x12\r\n\x05value\x18\x01 \x01(\x02\x12\x0f\n\x07movieId\x18\x02 \x01(\x05\x12\x0e\n\x06userId\x18\x03 \x01(\x05\",\n\nMeanRating\x12\r\n\x05value\x18\x01 \x01(\x02\x12\x0f\n\x07movieId\x18\x02 \x01(\x05\"2\n\x05Movie\x12\n\n\x02id\x18\x01 \x01(\x05\x12\r\n\x05title\x18\x02 \x01(\t\x12\x0e\n\x06genres\x18\x03 \x03(\t\"H\n\x0f\x43onsumedMessage\x12\x10\n\x08\x63onsumer\x18\x01 \x01(\t\x12\x11\n\ttimestamp\x18\x02 \x01(\x02\x12\x10\n\x08hostname\x18\x03 \x01(\t\"J\n\x10PublishedMessage\x12\x11\n\tpublisher\x18\x01 \x01(\t\x12\x11\n\ttimestamp\x18\x02 \x01(\x02\x12\x10\n\x08hostname\x18\x03 \x01(\tb\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'movies_pb2', globals())
@@ -26,4 +26,8 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _MEANRATING._serialized_end=126
   _MOVIE._serialized_start=128
   _MOVIE._serialized_end=178
+  _CONSUMEDMESSAGE._serialized_start=180
+  _CONSUMEDMESSAGE._serialized_end=252
+  _PUBLISHEDMESSAGE._serialized_start=254
+  _PUBLISHEDMESSAGE._serialized_end=328
 # @@protoc_insertion_point(module_scope)

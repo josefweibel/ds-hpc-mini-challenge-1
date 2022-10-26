@@ -1,31 +1,53 @@
 # change messaging system to use here:
-system = 'rabbitmq' # or 'kafka'
+system = 'kafka' # or 'kafka'
 
 if system == 'kafka':
 	from kafka import KafkaConsumer, KafkaProducer
 	import uuid
+	import math
+	import time
+	import socket
+	from movies_pb2 import ConsumedMessage, PublishedMessage
 
 	servers = ['broker1:9093', 'broker2:9095', 'broker3:9097']
 
 	class MessageProducer:
-		def __init__(self, name):
+		def __init__(self, name, publish_metrics=True):
+			self.name = name
 			self.kafka_producer = KafkaProducer(
 				bootstrap_servers=servers,
 				api_version=(0, 10),
 				client_id=name
 			)
+			self.publish_metrics = publish_metrics
 
 		def publish(self, topic, message, key=str(uuid.uuid4())):
 			key_bytes = bytes(key, encoding='utf-8')
 			value_bytes = message.SerializeToString()
 
 			self.kafka_producer.send(topic, key=key_bytes, value=value_bytes)
+			self.__report_publication()
 			self.kafka_producer.flush()
 
 			return key
 
+		def __report_publication(self):
+			if self.publish_metrics == False:
+				return
+
+			message = PublishedMessage()
+			message.publisher = self.name
+			message.timestamp = time.time_ns() / (10 ** 9)
+			message.hostname = socket.gethostname()
+			self.kafka_producer.send(
+				'published-messages',
+				key=bytes(str(uuid.uuid4()), encoding='utf-8'),
+				value=message.SerializeToString()
+			)
+
 	class MessageProcessor:
-		def __init__(self, name, create_fnc, topics):
+		def __init__(self, name, create_fnc, topics, publish_metrics=True):
+			self.name = name
 			self.create_fnc = create_fnc
 			self.kafka_consumer = KafkaConsumer(
 				auto_offset_reset='earliest',
@@ -35,17 +57,43 @@ if system == 'kafka':
 			)
 			self.kafka_consumer.subscribe(topics)
 
-		def run(self):
-			for message in self.kafka_consumer:
+			self.publish_metrics = publish_metrics
+			if self.publish_metrics:
+				self.kafka_producer = KafkaProducer(
+					bootstrap_servers=servers,
+					api_version=(0, 10),
+					client_id=name
+				)
+
+		def run(self, n = math.inf):
+			for i, message in enumerate(self.kafka_consumer):
 				try:
 					parsed_message = self.create_fnc(message.topic)
 					parsed_message.ParseFromString(message.value)
 					self.on_message(parsed_message, message.topic)
+					self.__report_consumption()
 				except Exception as e:
-					print('cannot process message for topic ' + message.topic)
+					print('cannot process message for topic ' + message.topic, e)
+
+				if i + 1 == n:
+					break
 
 		def on_message(self, message, topic):
 			raise NotImplementedError('on_message must be implemented')
+
+		def __report_consumption(self):
+			if self.publish_metrics == False:
+				return
+
+			message = ConsumedMessage()
+			message.consumer = self.name
+			message.timestamp = time.time_ns() / (10 ** 9)
+			message.hostname = socket.gethostname()
+			self.kafka_producer.send(
+				'consumed-messages',
+				key=bytes(str(uuid.uuid4()), encoding='utf-8'),
+				value=message.SerializeToString()
+			)
 
 elif system == 'rabbitmq':
 	import pika

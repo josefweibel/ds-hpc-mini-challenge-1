@@ -1,4 +1,5 @@
 import pandas as pd
+import sys
 
 from message_service import MessageProcessor
 from movies_pb2 import Movie, MeanRating
@@ -42,4 +43,9 @@ class MovieDataProcessor(MessageProcessor):
 			raise ValueError('unknown topic ' + topic)
 
 sink = MovieDataSink()
-MovieDataProcessor(['movies', 'mean-ratings'], sink).run()
+processor = MovieDataProcessor(['movies', 'mean-ratings'], sink)
+if __name__ == '__main__':
+	if len(sys.argv) > 1:
+		processor.run(n = int(sys.argv[1]))
+	else:
+		processor.run()
