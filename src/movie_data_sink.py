@@ -3,47 +3,41 @@ import sys
 
 from message_service import MessageProcessor
 from movies_pb2 import Movie, MeanRating
-
-class MovieDataSink:
-	def __init__(self):
-		self.data = self.__load_data()
-
-	def __load_data(self):
-		return pd.read_csv('./data/movie-data.csv', sep = ';', index_col = 'movie_id')
-
-	def save(self, id, data):
-		for key, value in data.items():
-			self.data.loc[id, key] = value
-
-		keys = ', '.join(data.keys())
-		print(f'Storing properties {keys} for movie {id}')
-
-		self.data.to_csv('./data/movie-data.csv', sep = ';')
+from storable_dataframe import StorableDataFrame
 
 class MovieDataProcessor(MessageProcessor):
-	def __init__(self, topics, sink):
+	def __init__(self, topics):
 		super().__init__(
-			'movie_data_producer',
+			'movie_data_sink',
 			lambda t: Movie() if t == 'movies' else MeanRating(),
 			topics
 		)
-		self.sink = sink
+		self.data = StorableDataFrame('./data/movie-data.csv', 'movie_id', self.commit_async)
 
-	def on_message(self, message, topic):
+	def on_message(self, message, topic, kafka_message):
 		if topic == 'mean-ratings':
-			self.sink.save(message.movieId, {
+			self.save(message.movieId, {
 				'mean_rating': message.value
-			})
+			}, kafka_message)
 		elif topic == 'movies':
-			self.sink.save(message.id, {
+			self.save(message.id, {
 				'title': message.title,
 				'genres': ','.join(message.genres)
-			})
+			}, kafka_message)
 		else:
 			raise ValueError('unknown topic ' + topic)
 
-sink = MovieDataSink()
-processor = MovieDataProcessor(['movies', 'mean-ratings'], sink)
+	def save(self, id, data, kafka_message):
+		self.data.update(lambda df: self.__save(df, id, data), kafka_message)
+
+	def __save(self, data, id, new_data):
+		keys = ', '.join(new_data.keys())
+		print(f'Updating properties {keys} for movie {id}')
+
+		for key, value in new_data.items():
+			data.loc[id, key] = value
+
+processor = MovieDataProcessor(['movies', 'mean-ratings'])
 if __name__ == '__main__':
 	if len(sys.argv) > 1:
 		processor.run(n = int(sys.argv[1]))

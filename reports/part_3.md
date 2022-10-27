@@ -455,3 +455,39 @@ Line #    Mem usage    Increment  Occurrences   Line Contents
 ```
 
 
+## Bottlenecks
+
+Es zeigt sich bei den Profilings klar, dass das Abspeichern der CSV-Dateien viel Ressourcen verbraucht. Da jeweils die ganzen Dateien abgespeichert werden, dauert es länger je mehr Daten es werden.
+
+Da sehr viele Messages verarbeitet werden müssen und vor allem die CPU-Leistung begrenzt ist, wird nun versucht die Laufzeit der Processors zu optimieren, was auch auf Kosten des Speicherverbrauchs gehen darf, da von diesem ausreichend vorhanden ist.
+
+### Lösung
+
+Das Bottleneck wurde entfernt, indem das Speichern in einen separaten Thread ausgelagert wurde und nun nicht mehr nach jeder verarbeiteten Message geschieht. Das Dataframe wird nun jeweils nach fünf Sekunden als CSV-Datei gespeichert. Damit es zu keinem Datenverlust kommt, wenn der Service vor dem Speichern abstürzt, wird der Offset erst nach dem Abspeichern in die Datei auf den Kafka-Brokern erhöht. Im Falle eines Ausfalls des jeweiligen Services kann dieser einfach neugestartet werden und erhält dann nochmals alle Messages, die durch den Ausfall verloren gingen.
+
+Das pandas Dataframe sollte nicht von mehreren Threads gleichzeitig bearbeitet werden, da es nicht threadsafe implementiert ist. Deswegen existiert ein Mutex, das jeweils während des Aktualisierens von Daten und dem Speichern der Daten aktiviert wird. So kann jeweils nur ein Thread gleichzeitig dieses verwenden. Dadurch wird jedoch der jeweilige andere Thread blockiert. Um diese Blockierungszeit beim Speichern zu reduzieren, wird währenddem das Mutex aktiv ist nur eine Kopie des Dataframes erstellt und diese erst nach dem Deaktivieren des Mutex gespeichert.
+
+Um die Gefahr zu verringern, dass das Dataframe ausserhalb des aktiven Mutex verwendet wird und um Code-Duplikation zu vermeiden, wurde diese Lösung in einer Klasse mit dem Namen `StorableDataFrame` implementiert, die von beiden Consumern verwendet wird.
+
+Die Profilings *profiles/mean_rating_producer-improved.profile* und *profiles/movie_data_processor-improved.profile* enthalten nun keine Funktionsaufrufe mehr, die auf ein Speichern der CSV-Datei rückschliessen lassen. Dies ist so, da cProfile lediglich die Aufrufe aus dem Hauptthread aufzeichnet. In den SnakeViz-Visualisierungen der Profilings sieht man nun, dass die CSV-Funktionen fehlen:
+
+![](meanratingproducer-improved-profile.png)
+
+![](moviedatasink-improved-profile.png)
+
+In Kafdrop sieht man nun auch für jede Consumer Group den Offset-Lag. Der moviedatasink kann die wenigen Messages aus dem movies-Topic gut verarbeiten und der Lag sinkt jeweils nach dem Speichern der Datei auf eine Zahl nahe bei 0. Es ist aber nach wie vor so, dass der meanratingproducer mehr Zeit braucht, um die publizierten Messages aus dem ratings-Topic zu verarbeiten als der ratingproducer benötigt, um diese zu publizieren.
+
+Der Throughput hat sich durch die Optimierung stark erhöht. So wurden vorher zwischen 6000 und 8000 Messages pro Zeiteinheit (ca. zwei Minuten) von den Consumern verarbeitet. Nach der Umstellung sind es zwischen 25000 und 30000, was deutlich mehr ist.
+
+**Throughput vorher**
+![](throughput.png)
+
+**Throughput nachher**
+![](throughput-improved.png)
+
+
+## Weitere mögliche Bottlenecks
+
+Auch das Einlesen der CSV-Datei in den Producern könnte bei einer schlechten Umsetzung ein Bottleneck sein und viel Arbeitsspeicher beanspruchen. In der jetzigen Implementierung wird die CSV-Datei in Chunks eingelesen. Alternativ könnte man diese Datei auch zuerst komplett in den Arbeitsspeicher laden und daraus ein pandas Dataframe erzeugen. Dies würde die Zeit bis die erste Message publiziert werden kann stark verlängern und je nach Grösse der Datei könnte dies den verfügbaren Arbeitsspeicher übersteigen.
+
+Der meanratingproducer kann immer noch nicht mit der Leistung des ratingproducers mithalten und je länger das System läuft, desto mehr gerät dieser ins Hintertreffen. Eine weitere Optimierung wäre hier das Starten eines zweiten meanratingproducer-Services, so dass sich beide die Arbeit aufteilen können. Dabei ist zu beachten, dass momentan als Datenspeicher eine einzelne CSV-Datei verwendet wird, die nun asynchron zu den Messages abgespeichert wird. Um mehrere Instanzen des Services verwenden zu können, braucht es sicher mehrere Partitionen auf den Kafka-Brokern für das rating-Topic. Zudem braucht es entweder einen zentralen Datenspeicher, der die Lese- und Schreibzugriffe synchronisiert (zum Beispiel eine relationale Datenbank mit ACID). Oder alternativ können die Messages nach einer bestimmten Strategie (nicht Round-Robin-Verfahren) in die Partitionen verteilt werden, so dass jeder meanratingproducer Ratings für ein vorbestimmtes Set an Filmen verarbeitet und sie sich so nicht in die Quere kommen.

@@ -53,7 +53,9 @@ if system == 'kafka':
 				auto_offset_reset='earliest',
 				bootstrap_servers=servers,
 				api_version=(0, 10),
-				client_id=name
+				client_id=name,
+				group_id=name,
+				enable_auto_commit=False
 			)
 			self.kafka_consumer.subscribe(topics)
 
@@ -70,15 +72,15 @@ if system == 'kafka':
 				try:
 					parsed_message = self.create_fnc(message.topic)
 					parsed_message.ParseFromString(message.value)
-					self.on_message(parsed_message, message.topic)
+					self.on_message(parsed_message, message.topic, message)
 					self.__report_consumption()
 				except Exception as e:
-					print('cannot process message for topic ' + message.topic, e)
+					print(f'cannot process message for topic {message.topic}:', e)
 
 				if i + 1 == n:
 					break
 
-		def on_message(self, message, topic):
+		def on_message(self, message, topic, kafka_message):
 			raise NotImplementedError('on_message must be implemented')
 
 		def __report_consumption(self):
@@ -93,6 +95,13 @@ if system == 'kafka':
 				'consumed-messages',
 				key=bytes(str(uuid.uuid4()), encoding='utf-8'),
 				value=message.SerializeToString()
+			)
+
+		def commit_async(self, offsets):
+			print(f'Commiting for {self.name} and offsets {offsets}')
+			self.kafka_consumer.commit_async(
+				offsets,
+				lambda offsets, response: print(f'Commit result for {self.name} and offsets {offsets}:', response)
 			)
 
 elif system == 'rabbitmq':
