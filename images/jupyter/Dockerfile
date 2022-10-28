@@ -1,5 +1,5 @@
 FROM jupyter/scipy-notebook:${JUPYTER_VERSION:-latest}
-RUN pip install kafka-python protobuf pandas pika snakeviz memory-profiler
+RUN pip install kafka-python protobuf pika snakeviz memory-profiler
 COPY src /home/jovyan/
 RUN mkdir /home/jovyan/data
 COPY data/ratings.csv /home/jovyan/data/ratings.csv
