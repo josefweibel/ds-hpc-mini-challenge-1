@@ -125,7 +125,7 @@ Beide Grafiken wurden mit [SnakeViz](https://jiffyclub.github.io/snakeviz/) gene
 
 ### Memory-Analyse
 
-Mittels `memory_profiler` Library wurden alle Producer und Processors einem Memory-Profiling unterzogen. Untersucht wurden jeweils die wichtigsten Methoden des jeweiligen Service. Bei allen anderen Funktionen scheint kein Speicherverbrauch aufgezeichnet zu werden, oder er ist tatsächlich jeweils so gering, dass er mit 0.0 MiB ausgewiesen wird.
+Mittels `memory_profiler` Library wurden alle Producer und Processors einem Memory-Profiling unterzogen. Untersucht wurden jeweils die wichtigsten Methoden des jeweiligen Service. Bei allen anderen Funktionen scheint kein Speicherverbrauch aufgezeichnet zu werden, oder er ist tatsächlich jeweils so gering, dass er mit 0.0 MiB ausgewiesen wird. Auf jeden Fall ist das Profiling so nicht sehr aussagekräftig, da der Verdacht besteht, dass es nicht korrekt funktioniert.
 
 #### ratingproducer
 
